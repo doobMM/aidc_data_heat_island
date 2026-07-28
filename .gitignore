@@ -1,16 +1,15 @@
-# 원자료는 이 저장소에 들어오지 않는다 — 이유는 README·_원자료_목록.md 참조
+# ⛔ 개인정보 — 절대 커밋하지 않는다
+# 질병관리청 NEDIS 온열질환 원자료는 환자 1명당 1행(15,000행)에
+# 발생일자·시각·성별·나이·시군구가 들어 있어 재식별 위험이 있다.
 FOIA_*
-OPEN_*
-_OPEN_*
+data/FOIA_*
+
+# 용량 — GitHub 100MB 한도 초과분
 LANDSAT/
 *.TIF
 *_MTL.txt
-*.xlsx
-*.xls
 *.parquet
-
-# 대용량 파생물
-DERIVED_0725_기준도넛_피복마스크.*
+data/DERIVED_0725_기준도넛_피복마스크.*
 
 # 작업 부산물
 .ipynb_checkpoints/
