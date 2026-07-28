@@ -1,0 +1,19 @@
+# 원자료는 이 저장소에 들어오지 않는다 — 이유는 README·_원자료_목록.md 참조
+FOIA_*
+OPEN_*
+_OPEN_*
+LANDSAT/
+*.TIF
+*_MTL.txt
+*.xlsx
+*.xls
+*.parquet
+
+# 대용량 파생물
+DERIVED_0725_기준도넛_피복마스크.*
+
+# 작업 부산물
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.DS_Store
