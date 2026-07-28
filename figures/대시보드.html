@@ -1,0 +1,222 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI 데이터센터 열섬 — 추정과 그 한계</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#f7f1e4;--panel:#fffdf8;--alt:#efe6d1;--ink:#18201b;--muted:#526155;--line:#d6ccb3;
+--accent:#1d6b4c;--soft:#d4efdd;--warm:#bb5f2b;--danger:#a4432b;--gold:#8d6c18;--goldsoft:#f3e9c3;
+--font:'Pretendard Variable',Pretendard,Aptos,'Segoe UI',system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.65;
+-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:clamp(24px,4.4vw,38px);line-height:1.25;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:clamp(18px,2.6vw,23px);margin:44px 0 6px;letter-spacing:-.01em}
+h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:8px}
+.lede{color:var(--muted);font-size:15px;margin:0 0 4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:14px 0}
+.hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:18px 0 6px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.stat .v{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .k{font-size:12.5px;color:var(--muted);margin-top:2px}
+.stat.warn{background:var(--goldsoft);border-color:#e3d49a}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{font-size:12px;color:var(--muted);font-weight:600;border-bottom:1.5px solid var(--line);white-space:nowrap}
+tbody th{font-weight:600;white-space:nowrap}
+.sgg{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.muted{color:var(--muted)}
+td.lo{color:var(--muted)} td.ctr{font-weight:700} td.hi{color:var(--warm)}
+.bar{width:34%;min-width:120px}
+.track{position:relative;display:block;height:9px;background:var(--alt);border-radius:5px}
+.rng{position:absolute;top:0;height:9px;background:var(--soft);border:1px solid var(--accent);border-radius:5px}
+.mid{position:absolute;top:-2px;width:3px;height:13px;background:var(--accent);border-radius:2px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.split{grid-template-columns:1fr}.bar{display:none}}
+.axis{display:flex;align-items:center;gap:10px;margin:16px 0 6px;font-size:12.5px;color:var(--muted)}
+.axis span{flex:1;height:1px;background:var(--line)}
+ul.chips{list-style:none;padding:0;margin:0}
+.chip{border-radius:12px;padding:10px 12px;margin:8px 0;border:1px solid var(--line);background:var(--panel)}
+.chip .ct{display:block;font-size:14px;font-weight:600}
+.chip .cs{display:block;font-size:12.5px;color:var(--muted);margin-top:3px}
+.chip.under{border-left:5px solid var(--accent)}
+.chip.over{border-left:5px solid var(--danger)}
+.w-3{box-shadow:0 1px 0 var(--line),inset 0 0 0 1px rgba(0,0,0,.02)}
+.w-1{opacity:.72}
+.ok{color:var(--accent);font-weight:600} .na{color:var(--muted)}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--alt);color:var(--muted)}
+.tag.hot{background:#f6ddd3;color:var(--danger)}
+.tag.cool{background:var(--soft);color:var(--accent)}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+svg{max-width:100%;height:auto;display:block}
+a{color:var(--accent)}
+.foot{margin-top:50px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+@media(prefers-color-scheme:dark){
+:root{--bg:#15171a;--panel:#1c1f23;--alt:#262a2f;--ink:#e9e4d8;--muted:#9aa39a;--line:#333a40;
+--soft:#1d3a2c;--goldsoft:#332d1a}
+}
+</style></head><body><div class="wrap">
+
+<h1>AI 데이터센터가 들어오면<br>몇 명이 더 아픈가</h1>
+<p class="lede">그리고 <b>그 숫자를 얼마나 믿을 수 있나.</b> · 2026-07-28 · 문의 mjooya56@gmail.com</p>
+
+<div class="hero">
+  <div class="stat"><div class="v">11</div><div class="k">측정한 부지</div></div>
+  <div class="stat"><div class="v">236만</div><div class="k">인천 10km 안 노출 인구 <span class="tag cool">실측</span></div></div>
+  <div class="stat"><div class="v">0.8&ndash;24.6</div><div class="k">부지당 연간 추가 환자(건) <span class="tag">추정</span></div></div>
+  <div class="stat warn"><div class="v">4/5</div><div class="k">국내 실측에서 <b>예측이 기각된</b> 거리 링</div></div>
+</div>
+
+<h2><span class="n">1</span>부지별 추정</h2>
+<p class="lede">막대는 <b>하한&ndash;상한</b> 범위, 세로선은 중심값. 10km 이내 기준.</p>
+<div class="card">
+<table>
+<thead><tr><th>부지</th><th class="num">10km 인구</th><th class="num">65세+</th>
+<th>범위</th><th class="num">하한</th><th class="num">중심</th><th class="num">상한</th></tr></thead>
+<tbody>
+<tr>
+  <th scope="row"><b>인천 동국제강</b><span class="sgg">인천광역시 동구</span></th>
+  <td class="num">2,345,227</td>
+  <td class="num muted">403,200</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:37.1%;width:62.9%"></span><span class="mid" style="left:53.7%"></span></span></td>
+  <td class="num lo">9.1</td><td class="num ctr">13.2</td><td class="num hi">24.6</td>
+</tr><tr>
+  <th scope="row"><b>인천 현대제철</b><span class="sgg">인천광역시 동구</span></th>
+  <td class="num">2,341,418</td>
+  <td class="num muted">403,412</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:36.4%;width:62.3%"></span><span class="mid" style="left:53.0%"></span></span></td>
+  <td class="num lo">9.0</td><td class="num ctr">13.1</td><td class="num hi">24.3</td>
+</tr><tr>
+  <th scope="row"><b>울산 미포</b><span class="sgg">울산광역시 남구</span></th>
+  <td class="num">982,108</td>
+  <td class="num muted">152,655</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:22.5%;width:29.7%"></span><span class="mid" style="left:27.8%"></span></span></td>
+  <td class="num lo">5.5</td><td class="num ctr">6.8</td><td class="num hi">12.9</td>
+</tr><tr>
+  <th scope="row"><b>구미 전자</b><span class="sgg">경상북도 구미시</span></th>
+  <td class="num">458,556</td>
+  <td class="num muted">50,869</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:12.8%;width:17.6%"></span><span class="mid" style="left:16.3%"></span></span></td>
+  <td class="num lo">3.2</td><td class="num ctr">4.0</td><td class="num hi">7.5</td>
+</tr><tr>
+  <th scope="row"><b>울산 온산</b><span class="sgg">울산광역시 울주군</span></th>
+  <td class="num">484,535</td>
+  <td class="num muted">79,845</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:10.0%;width:17.6%"></span><span class="mid" style="left:14.9%"></span></span></td>
+  <td class="num lo">2.5</td><td class="num ctr">3.7</td><td class="num hi">6.8</td>
+</tr><tr>
+  <th scope="row"><b>광양 제철</b><span class="sgg">전라남도 광양시</span></th>
+  <td class="num">120,229</td>
+  <td class="num muted">18,943</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:9.5%;width:11.7%"></span><span class="mid" style="left:11.4%"></span></span></td>
+  <td class="num lo">2.4</td><td class="num ctr">2.8</td><td class="num hi">5.2</td>
+</tr><tr>
+  <th scope="row"><b>포항 제철</b><span class="sgg">경상북도 포항시</span></th>
+  <td class="num">418,357</td>
+  <td class="num muted">83,156</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:6.7%;width:11.4%"></span><span class="mid" style="left:9.9%"></span></span></td>
+  <td class="num lo">1.6</td><td class="num ctr">2.5</td><td class="num hi">4.5</td>
+</tr><tr>
+  <th scope="row"><b>여수 석화</b><span class="sgg">전라남도 여수시</span></th>
+  <td class="num">186,495</td>
+  <td class="num muted">32,741</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:4.3%;width:8.4%"></span><span class="mid" style="left:6.9%"></span></span></td>
+  <td class="num lo">1.1</td><td class="num ctr">1.7</td><td class="num hi">3.1</td>
+</tr><tr>
+  <th scope="row"><b>동해 북평(국가)</b><span class="sgg">강원특별자치도 동해시</span></th>
+  <td class="num">124,462</td>
+  <td class="num muted">28,917</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:3.4%;width:4.7%"></span><span class="mid" style="left:4.3%"></span></span></td>
+  <td class="num lo">0.8</td><td class="num ctr">1.1</td><td class="num hi">2.0</td>
+</tr><tr>
+  <th scope="row"><b>동해 북평2 (GS 2.4GW)</b><span class="sgg">강원특별자치도 동해시</span></th>
+  <td class="num">123,274</td>
+  <td class="num muted">28,459</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:3.0%;width:4.4%"></span><span class="mid" style="left:4.0%"></span></span></td>
+  <td class="num lo">0.8</td><td class="num ctr">1.0</td><td class="num hi">1.8</td>
+</tr><tr>
+  <th scope="row"><b>당진1 철강</b><span class="sgg">충청남도 당진시</span></th>
+  <td class="num">67,149</td>
+  <td class="num muted">10,325</td>
+  <td class="bar"><span class="track"><span class="rng" style="left:2.2%;width:3.8%"></span><span class="mid" style="left:3.2%"></span></span></td>
+  <td class="num lo">0.5</td><td class="num ctr">0.8</td><td class="num hi">1.5</td>
+</tr>
+</tbody></table>
+<p class="note">
+<b>하한</b> β 0.258 · 반감기 3.0km &nbsp;|&nbsp; <b>중심</b> β 0.258 · 반감기 4.2km &nbsp;|&nbsp; <b>상한</b> β 0.459 · 반감기 4.2km<br>
+⚠ 인천 두 부지는 340m 거리라 10km 버퍼가 거의 겹친다 &mdash; <b>더하면 안 된다</b>.<br>
+⚠ 포항·여수는 산단 실형상 자료가 없어 대표좌표 폴백을 썼다 &mdash; 인구가 하한이므로 환자 수도 하한이다.
+</p>
+</div>
+
+<h2><span class="n">2</span>이 숫자를 어느 쪽으로 밀고 있나</h2>
+<p class="lede">모든 가정을 한 줄에 놓았다. 왼쪽은 <b>실제보다 작게</b> 만드는 것, 오른쪽은 <b>크게</b> 만드는 것.</p>
+<div class="axis"><b style="color:var(--accent)">← 과소평가</b><span></span><b style="color:var(--danger)">과대평가 →</b></div>
+<div class="split">
+  <div><ul class="chips"><li class="chip under w-3"><span class="ct">플룸을 무시하고 <b>사방 균일</b>로 놓았다</span><span class="cs">바람 쪽으로 몰리면 dose가 볼록해 <b>오히려 는다</b> — 90° 부채꼴 1.49배, 45° 2.69배</span></li><li class="chip under w-3"><span class="ct">β를 <b>0.258</b>(직접 측정)로 잡았다</span><span class="cs">회귀희석으로 눌린 하한일 수 있다. 보정하면 0.459 → 추정 <b>1.86배</b></span></li><li class="chip under w-2"><span class="ct">포항·여수는 <b>점 폴백</b>이다</span><span class="cs">산단 실형상이 없어 인구가 하한이다 — 광양은 실형상으로 재니 3km 인구가 73명→72,511명이었다</span></li><li class="chip under w-2"><span class="ct">GW급은 <b>각 세종보다 훨씬 크다</b></span><span class="cs">우리 반증 사례는 소규모다. 부하가 차오른 뒤의 값은 모른다</span></li><li class="chip under w-2"><span class="ct"><b>야간</b>을 재지 않았다</span><span class="cs">Landsat은 오전 11시 통과. 폐열 신호는 보통 밤에 뚜렷하다</span></li><li class="chip under w-1"><span class="ct"><b>10km에서 잘랐다</b></span><span class="cs">논문은 "10km까지 도달"이라 하지만 그 밖이 0이라는 뜻은 아니다</span></li></ul></div>
+  <div><ul class="chips"><li class="chip over w-3"><span class="ct"><b>각 세종에서 재현되지 않았다</b></span><span class="cs">링별 실측에서 <b>4/5 링이 예측을 기각</b>했다. 관측된 변화는 0~0.5km 한 링뿐 — 확산이 아니라 건물 발자국</span></li><li class="chip over w-3"><span class="ct"><b>반감기 4.2km</b>는 논밭·숲 위에서 잰 값</span><span class="cs">거친 지표는 혼합이 빨라 반감기가 짧아진다 → 3.0km면 <b>0.69배</b>, 2.0km면 0.39배</span></li><li class="chip over w-2"><span class="ct">이미 뜨거운 표면에 <b>같은 배수</b>를 적용</span><span class="cs">복사 방출이 T₀³이라 산단에서는 같은 열속에 10~20% 덜 오른다</span></li><li class="chip over w-2"><span class="ct">가동 산단은 <b>열원이 교체</b>된다</span><span class="cs">공정열이 빠지고 DC열이 들어오므로 순변화가 +2.07이 아니다 (폐공장은 해당 없음)</span></li><li class="chip over w-2"><span class="ct">링 전체가 <b>그 시군구와 같은 발생률</b></span><span class="cs">10km 안 236만 명이 전부 인천 동구와 같은 비율로 아프다고 놓았다 — <b>가장 센 전이</b></span></li><li class="chip over w-1"><span class="ct">dose 배수가 <b>"더운 날의 총효과"</b></span><span class="cs">강수·일사를 통제하면 1.51로 내려간다. 통제하지 않은 쪽(10~13% 큰)을 택했다</span></li></ul></div>
+</div>
+<div class="card"><b>어느 쪽이 이기나 &mdash; 우리는 모른다.</b><br>
+<span class="note" style="font-size:13.5px">다만 <b>가장 무거운 항목이 과대 쪽</b>에 있다. 국내 유일한 실측에서 곡선이 재현되지 않았기 때문이다.
+그래서 우리는 위 표의 값을 <b>확정 예측이 아니라 상한</b>으로 읽는다. 값을 임의로 깎지는 않았다 &mdash;
+얼마나 깎아야 하는지(반감기가 몇 km인지)를 아직 모르기 때문이다.</span></div>
+
+<h2><span class="n">3</span>열은 거리에 따라 어떻게 식나</h2>
+<p class="lede">이 곡선이 위 표의 <b>62%</b>를 만든다 &mdash; 추가 환자의 대부분이 4.5&ndash;10km 구간에서 나오기 때문이다.</p>
+<div class="card">
+<svg viewBox="0 0 700 340" role="img" aria-label="거리에 따른 기온 상승 감쇠 곡선">
+  <line x1="40" y1="300" x2="660" y2="300" stroke="var(--line)" stroke-width="1.5"/>
+  <line x1="40" y1="50" x2="40" y2="300" stroke="var(--line)" stroke-width="1.5"/>
+  <line x1="40.0" y1="300" x2="40.0" y2="305" stroke="var(--line)"/><text x="40.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">0</text><line x1="164.0" y1="300" x2="164.0" y2="305" stroke="var(--line)"/><text x="164.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">2</text><line x1="288.0" y1="300" x2="288.0" y2="305" stroke="var(--line)"/><text x="288.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">4</text><line x1="412.0" y1="300" x2="412.0" y2="305" stroke="var(--line)"/><text x="412.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">6</text><line x1="536.0" y1="300" x2="536.0" y2="305" stroke="var(--line)"/><text x="536.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">8</text><line x1="660.0" y1="300" x2="660.0" y2="305" stroke="var(--line)"/><text x="660.0" y="320" text-anchor="middle" font-size="11" fill="var(--muted)">10</text>
+  <text x="34" y="213.0909090909091" text-anchor="end" font-size="11" fill="var(--muted)">0.2</text><line x1="40" y1="209.0909090909091" x2="660" y2="209.0909090909091" stroke="var(--line)" stroke-dasharray="2 5" opacity=".6"/><text x="34" y="122.18181818181819" text-anchor="end" font-size="11" fill="var(--muted)">0.4</text><line x1="40" y1="118.18181818181819" x2="660" y2="118.18181818181819" stroke="var(--line)" stroke-dasharray="2 5" opacity=".6"/>
+  <polyline points="40.0,57.2 43.1,59.2 46.2,61.2 49.3,63.2 52.4,65.1 55.5,67.1 58.6,69.0 61.7,70.9 64.8,72.8 67.9,74.6 71.0,76.5 74.1,78.3 77.2,80.1 80.3,81.9 83.4,83.7 86.5,85.5 89.6,87.3 92.7,89.0 95.8,90.8 98.9,92.5 102.0,94.2 105.1,95.9 108.2,97.5 111.3,99.2 114.4,100.9 117.5,102.5 120.6,104.1 123.7,105.7 126.8,107.3 129.9,108.9 133.0,110.5 136.1,112.0 139.2,113.6 142.3,115.1 145.4,116.6 148.5,118.1 151.6,119.6 154.7,121.1 157.8,122.6 160.9,124.0 164.0,125.5 167.1,126.9 170.2,128.3 173.3,129.8 176.4,131.2 179.5,132.5 182.6,133.9 185.7,135.3 188.8,136.6 191.9,138.0 195.0,139.3 198.1,140.6 201.2,141.9 204.3,143.2 207.4,144.5 210.5,145.8 213.6,147.1 216.7,148.3 219.8,149.6 222.9,150.8 226.0,152.0 229.1,153.3 232.2,154.5 235.3,155.7 238.4,156.8 241.5,158.0 244.6,159.2 247.7,160.3 250.8,161.5 253.9,162.6 257.0,163.8 260.1,164.9 263.2,166.0 266.3,167.1 269.4,168.2 272.5,169.3 275.6,170.3 278.7,171.4 281.8,172.5 284.9,173.5 288.0,174.5 291.1,175.6 294.2,176.6 297.3,177.6 300.4,178.6 303.5,179.6 306.6,180.6 309.7,181.6 312.8,182.6 315.9,183.5 319.0,184.5 322.1,185.4 325.2,186.4 328.3,187.3 331.4,188.2 334.5,189.2 337.6,190.1 340.7,191.0 343.8,191.9 346.9,192.8 350.0,193.6 353.1,194.5 356.2,195.4 359.3,196.2 362.4,197.1 365.5,197.9 368.6,198.8 371.7,199.6 374.8,200.4 377.9,201.2 381.0,202.1 384.1,202.9 387.2,203.7 390.3,204.5 393.4,205.2 396.5,206.0 399.6,206.8 402.7,207.6 405.8,208.3 408.9,209.1 412.0,209.8 415.1,210.6 418.2,211.3 421.3,212.0 424.4,212.7 427.5,213.5 430.6,214.2 433.7,214.9 436.8,215.6 439.9,216.3 443.0,217.0 446.1,217.6 449.2,218.3 452.3,219.0 455.4,219.7 458.5,220.3 461.6,221.0 464.7,221.6 467.8,222.3 470.9,222.9 474.0,223.5 477.1,224.2 480.2,224.8 483.3,225.4 486.4,226.0 489.5,226.6 492.6,227.2 495.7,227.8 498.8,228.4 501.9,229.0 505.0,229.6 508.1,230.2 511.2,230.7 514.3,231.3 517.4,231.9 520.5,232.4 523.6,233.0 526.7,233.5 529.8,234.1 532.9,234.6 536.0,235.2 539.1,235.7 542.2,236.2 545.3,236.8 548.4,237.3 551.5,237.8 554.6,238.3 557.7,238.8 560.8,239.3 563.9,239.8 567.0,240.3 570.1,240.8 573.2,241.3 576.3,241.8 579.4,242.2 582.5,242.7 585.6,243.2 588.7,243.7 591.8,244.1 594.9,244.6 598.0,245.0 601.1,245.5 604.2,245.9 607.3,246.4 610.4,246.8 613.5,247.3 616.6,247.7 619.7,248.1 622.8,248.5 625.9,249.0 629.0,249.4 632.1,249.8 635.2,250.2 638.3,250.6 641.4,251.0 644.5,251.4 647.6,251.8 650.7,252.2 653.8,252.6 656.9,253.0 660.0,253.4" fill="none" stroke="#1d6b4c" stroke-width="2.5"/><polyline points="40.0,57.2 43.1,59.2 46.2,61.2 49.3,63.2 52.4,65.1 55.5,67.1 58.6,69.0 61.7,70.9 64.8,72.8 67.9,74.6 71.0,76.5 74.1,78.3 77.2,80.1 80.3,81.9 83.4,83.7 86.5,85.5 89.6,87.3 92.7,89.0 95.8,90.8 98.9,92.5 102.0,94.2 105.1,95.9 108.2,97.5 111.3,99.2 114.4,100.9 117.5,102.5 120.6,104.1 123.7,105.7 126.8,107.3 129.9,108.9 133.0,110.5 136.1,112.0 139.2,113.6 142.3,115.1 145.4,116.6 148.5,118.1 151.6,119.6 154.7,121.1 157.8,122.6 160.9,124.0 164.0,125.5 167.1,126.9 170.2,128.3 173.3,129.8 176.4,131.2 179.5,132.5 182.6,133.9 185.7,135.3 188.8,136.6 191.9,138.0 195.0,139.3 198.1,140.6 201.2,141.9 204.3,143.2 207.4,144.5 210.5,145.8 213.6,147.1 216.7,148.3 219.8,149.6 222.9,150.8 226.0,152.0 229.1,153.3 232.2,154.5 235.3,155.7 238.4,156.8 241.5,158.0 244.6,159.2 247.7,160.3 250.8,161.5 253.9,162.6 257.0,163.8 260.1,164.9 263.2,166.0 266.3,167.1 269.4,168.2 272.5,169.3 275.6,170.3 278.7,171.4 281.8,172.5 284.9,173.5 288.0,174.5 291.1,175.6 294.2,176.6 297.3,177.6 300.4,178.6 303.5,179.6 306.6,180.6 309.7,181.6 312.8,182.6 315.9,183.5 319.0,184.5 322.1,185.4 325.2,186.4 328.3,187.3 331.4,188.2 334.5,189.2 337.6,190.1 340.7,191.0 343.8,191.9 346.9,192.8 350.0,193.6 353.1,194.5 356.2,195.4 359.3,196.2 362.4,197.1 365.5,197.9 368.6,198.8 371.7,199.6 374.8,200.4 377.9,201.2 381.0,202.1 384.1,202.9 387.2,203.7 390.3,204.5 393.4,205.2 396.5,206.0 399.6,206.8 402.7,207.6 405.8,208.3 408.9,209.1 412.0,209.8 415.1,210.6 418.2,211.3 421.3,212.0 424.4,212.7 427.5,213.5 430.6,214.2 433.7,214.9 436.8,215.6 439.9,216.3 443.0,217.0 446.1,217.6 449.2,218.3 452.3,219.0 455.4,219.7 458.5,220.3 461.6,221.0 464.7,221.6 467.8,222.3 470.9,222.9 474.0,223.5 477.1,224.2 480.2,224.8 483.3,225.4 486.4,226.0 489.5,226.6 492.6,227.2 495.7,227.8 498.8,228.4 501.9,229.0 505.0,229.6 508.1,230.2 511.2,230.7 514.3,231.3 517.4,231.9 520.5,232.4 523.6,233.0 526.7,233.5 529.8,234.1 532.9,234.6 536.0,235.2 539.1,235.7 542.2,236.2 545.3,236.8 548.4,237.3 551.5,237.8 554.6,238.3 557.7,238.8 560.8,239.3 563.9,239.8 567.0,240.3 570.1,240.8 573.2,241.3 576.3,241.8 579.4,242.2 582.5,242.7 585.6,243.2 588.7,243.7 591.8,244.1 594.9,244.6 598.0,245.0 601.1,245.5 604.2,245.9 607.3,246.4 610.4,246.8 613.5,247.3 616.6,247.7 619.7,248.1 622.8,248.5 625.9,249.0 629.0,249.4 632.1,249.8 635.2,250.2 638.3,250.6 641.4,251.0 644.5,251.4 647.6,251.8 650.7,252.2 653.8,252.6 656.9,253.0 660.0,253.4" fill="none" stroke="#1d6b4c" stroke-width="8" opacity=".08"/><polyline points="40.0,57.2 43.1,60.0 46.2,62.8 49.3,65.5 52.4,68.2 55.5,70.9 58.6,73.5 61.7,76.1 64.8,78.7 67.9,81.2 71.0,83.7 74.1,86.2 77.2,88.7 80.3,91.1 83.4,93.5 86.5,95.9 89.6,98.2 92.7,100.5 95.8,102.8 98.9,105.1 102.0,107.3 105.1,109.5 108.2,111.7 111.3,113.9 114.4,116.0 117.5,118.1 120.6,120.2 123.7,122.3 126.8,124.3 129.9,126.4 133.0,128.3 136.1,130.3 139.2,132.3 142.3,134.2 145.4,136.1 148.5,138.0 151.6,139.8 154.7,141.7 157.8,143.5 160.9,145.3 164.0,147.1 167.1,148.8 170.2,150.6 173.3,152.3 176.4,154.0 179.5,155.7 182.6,157.3 185.7,159.0 188.8,160.6 191.9,162.2 195.0,163.8 198.1,165.3 201.2,166.9 204.3,168.4 207.4,169.9 210.5,171.4 213.6,172.9 216.7,174.3 219.8,175.8 222.9,177.2 226.0,178.6 229.1,180.0 232.2,181.4 235.3,182.8 238.4,184.1 241.5,185.4 244.6,186.8 247.7,188.1 250.8,189.3 253.9,190.6 257.0,191.9 260.1,193.1 263.2,194.3 266.3,195.5 269.4,196.7 272.5,197.9 275.6,199.1 278.7,200.3 281.8,201.4 284.9,202.5 288.0,203.7 291.1,204.8 294.2,205.9 297.3,206.9 300.4,208.0 303.5,209.1 306.6,210.1 309.7,211.1 312.8,212.2 315.9,213.2 319.0,214.2 322.1,215.2 325.2,216.1 328.3,217.1 331.4,218.0 334.5,219.0 337.6,219.9 340.7,220.8 343.8,221.7 346.9,222.6 350.0,223.5 353.1,224.4 356.2,225.3 359.3,226.1 362.4,227.0 365.5,227.8 368.6,228.7 371.7,229.5 374.8,230.3 377.9,231.1 381.0,231.9 384.1,232.7 387.2,233.4 390.3,234.2 393.4,235.0 396.5,235.7 399.6,236.4 402.7,237.2 405.8,237.9 408.9,238.6 412.0,239.3 415.1,240.0 418.2,240.7 421.3,241.4 424.4,242.1 427.5,242.7 430.6,243.4 433.7,244.0 436.8,244.7 439.9,245.3 443.0,245.9 446.1,246.6 449.2,247.2 452.3,247.8 455.4,248.4 458.5,249.0 461.6,249.6 464.7,250.1 467.8,250.7 470.9,251.3 474.0,251.8 477.1,252.4 480.2,252.9 483.3,253.5 486.4,254.0 489.5,254.5 492.6,255.1 495.7,255.6 498.8,256.1 501.9,256.6 505.0,257.1 508.1,257.6 511.2,258.1 514.3,258.5 517.4,259.0 520.5,259.5 523.6,260.0 526.7,260.4 529.8,260.9 532.9,261.3 536.0,261.8 539.1,262.2 542.2,262.6 545.3,263.1 548.4,263.5 551.5,263.9 554.6,264.3 557.7,264.7 560.8,265.1 563.9,265.5 567.0,265.9 570.1,266.3 573.2,266.7 576.3,267.1 579.4,267.5 582.5,267.9 585.6,268.2 588.7,268.6 591.8,268.9 594.9,269.3 598.0,269.7 601.1,270.0 604.2,270.3 607.3,270.7 610.4,271.0 613.5,271.4 616.6,271.7 619.7,272.0 622.8,272.3 625.9,272.7 629.0,273.0 632.1,273.3 635.2,273.6 638.3,273.9 641.4,274.2 644.5,274.5 647.6,274.8 650.7,275.1 653.8,275.4 656.9,275.6 660.0,275.9" fill="none" stroke="#bb5f2b" stroke-width="2.5"/><polyline points="40.0,57.2 43.1,60.0 46.2,62.8 49.3,65.5 52.4,68.2 55.5,70.9 58.6,73.5 61.7,76.1 64.8,78.7 67.9,81.2 71.0,83.7 74.1,86.2 77.2,88.7 80.3,91.1 83.4,93.5 86.5,95.9 89.6,98.2 92.7,100.5 95.8,102.8 98.9,105.1 102.0,107.3 105.1,109.5 108.2,111.7 111.3,113.9 114.4,116.0 117.5,118.1 120.6,120.2 123.7,122.3 126.8,124.3 129.9,126.4 133.0,128.3 136.1,130.3 139.2,132.3 142.3,134.2 145.4,136.1 148.5,138.0 151.6,139.8 154.7,141.7 157.8,143.5 160.9,145.3 164.0,147.1 167.1,148.8 170.2,150.6 173.3,152.3 176.4,154.0 179.5,155.7 182.6,157.3 185.7,159.0 188.8,160.6 191.9,162.2 195.0,163.8 198.1,165.3 201.2,166.9 204.3,168.4 207.4,169.9 210.5,171.4 213.6,172.9 216.7,174.3 219.8,175.8 222.9,177.2 226.0,178.6 229.1,180.0 232.2,181.4 235.3,182.8 238.4,184.1 241.5,185.4 244.6,186.8 247.7,188.1 250.8,189.3 253.9,190.6 257.0,191.9 260.1,193.1 263.2,194.3 266.3,195.5 269.4,196.7 272.5,197.9 275.6,199.1 278.7,200.3 281.8,201.4 284.9,202.5 288.0,203.7 291.1,204.8 294.2,205.9 297.3,206.9 300.4,208.0 303.5,209.1 306.6,210.1 309.7,211.1 312.8,212.2 315.9,213.2 319.0,214.2 322.1,215.2 325.2,216.1 328.3,217.1 331.4,218.0 334.5,219.0 337.6,219.9 340.7,220.8 343.8,221.7 346.9,222.6 350.0,223.5 353.1,224.4 356.2,225.3 359.3,226.1 362.4,227.0 365.5,227.8 368.6,228.7 371.7,229.5 374.8,230.3 377.9,231.1 381.0,231.9 384.1,232.7 387.2,233.4 390.3,234.2 393.4,235.0 396.5,235.7 399.6,236.4 402.7,237.2 405.8,237.9 408.9,238.6 412.0,239.3 415.1,240.0 418.2,240.7 421.3,241.4 424.4,242.1 427.5,242.7 430.6,243.4 433.7,244.0 436.8,244.7 439.9,245.3 443.0,245.9 446.1,246.6 449.2,247.2 452.3,247.8 455.4,248.4 458.5,249.0 461.6,249.6 464.7,250.1 467.8,250.7 470.9,251.3 474.0,251.8 477.1,252.4 480.2,252.9 483.3,253.5 486.4,254.0 489.5,254.5 492.6,255.1 495.7,255.6 498.8,256.1 501.9,256.6 505.0,257.1 508.1,257.6 511.2,258.1 514.3,258.5 517.4,259.0 520.5,259.5 523.6,260.0 526.7,260.4 529.8,260.9 532.9,261.3 536.0,261.8 539.1,262.2 542.2,262.6 545.3,263.1 548.4,263.5 551.5,263.9 554.6,264.3 557.7,264.7 560.8,265.1 563.9,265.5 567.0,265.9 570.1,266.3 573.2,266.7 576.3,267.1 579.4,267.5 582.5,267.9 585.6,268.2 588.7,268.6 591.8,268.9 594.9,269.3 598.0,269.7 601.1,270.0 604.2,270.3 607.3,270.7 610.4,271.0 613.5,271.4 616.6,271.7 619.7,272.0 622.8,272.3 625.9,272.7 629.0,273.0 632.1,273.3 635.2,273.6 638.3,273.9 641.4,274.2 644.5,274.5 647.6,274.8 650.7,275.1 653.8,275.4 656.9,275.6 660.0,275.9" fill="none" stroke="#bb5f2b" stroke-width="8" opacity=".08"/><polyline points="40.0,-131.9 43.1,-128.3 46.2,-124.8 49.3,-121.3 52.4,-117.9 55.5,-114.4 58.6,-111.0 61.7,-107.6 64.8,-104.3 67.9,-101.0 71.0,-97.7 74.1,-94.4 77.2,-91.2 80.3,-87.9 83.4,-84.8 86.5,-81.6 89.6,-78.5 92.7,-75.4 95.8,-72.3 98.9,-69.2 102.0,-66.2 105.1,-63.2 108.2,-60.2 111.3,-57.2 114.4,-54.3 117.5,-51.4 120.6,-48.5 123.7,-45.6 126.8,-42.8 129.9,-40.0 133.0,-37.2 136.1,-34.4 139.2,-31.7 142.3,-28.9 145.4,-26.2 148.5,-23.5 151.6,-20.9 154.7,-18.2 157.8,-15.6 160.9,-13.0 164.0,-10.5 167.1,-7.9 170.2,-5.4 173.3,-2.9 176.4,-0.4 179.5,2.1 182.6,4.5 185.7,7.0 188.8,9.4 191.9,11.8 195.0,14.1 198.1,16.5 201.2,18.8 204.3,21.1 207.4,23.4 210.5,25.7 213.6,27.9 216.7,30.2 219.8,32.4 222.9,34.6 226.0,36.8 229.1,38.9 232.2,41.1 235.3,43.2 238.4,45.3 241.5,47.4 244.6,49.5 247.7,51.5 250.8,53.6 253.9,55.6 257.0,57.6 260.1,59.6 263.2,61.6 266.3,63.5 269.4,65.5 272.5,67.4 275.6,69.3 278.7,71.2 281.8,73.1 284.9,75.0 288.0,76.8 291.1,78.6 294.2,80.5 297.3,82.3 300.4,84.1 303.5,85.8 306.6,87.6 309.7,89.3 312.8,91.1 315.9,92.8 319.0,94.5 322.1,96.2 325.2,97.9 328.3,99.5 331.4,101.2 334.5,102.8 337.6,104.4 340.7,106.0 343.8,107.6 346.9,109.2 350.0,110.8 353.1,112.3 356.2,113.9 359.3,115.4 362.4,116.9 365.5,118.4 368.6,119.9 371.7,121.4 374.8,122.9 377.9,124.3 381.0,125.8 384.1,127.2 387.2,128.6 390.3,130.0 393.4,131.4 396.5,132.8 399.6,134.2 402.7,135.5 405.8,136.9 408.9,138.2 412.0,139.6 415.1,140.9 418.2,142.2 421.3,143.5 424.4,144.8 427.5,146.0 430.6,147.3 433.7,148.6 436.8,149.8 439.9,151.0 443.0,152.3 446.1,153.5 449.2,154.7 452.3,155.9 455.4,157.1 458.5,158.2 461.6,159.4 464.7,160.6 467.8,161.7 470.9,162.8 474.0,164.0 477.1,165.1 480.2,166.2 483.3,167.3 486.4,168.4 489.5,169.5 492.6,170.5 495.7,171.6 498.8,172.7 501.9,173.7 505.0,174.7 508.1,175.8 511.2,176.8 514.3,177.8 517.4,178.8 520.5,179.8 523.6,180.8 526.7,181.8 529.8,182.7 532.9,183.7 536.0,184.7 539.1,185.6 542.2,186.6 545.3,187.5 548.4,188.4 551.5,189.3 554.6,190.2 557.7,191.1 560.8,192.0 563.9,192.9 567.0,193.8 570.1,194.7 573.2,195.5 576.3,196.4 579.4,197.2 582.5,198.1 585.6,198.9 588.7,199.8 591.8,200.6 594.9,201.4 598.0,202.2 601.1,203.0 604.2,203.8 607.3,204.6 610.4,205.4 613.5,206.2 616.6,206.9 619.7,207.7 622.8,208.5 625.9,209.2 629.0,210.0 632.1,210.7 635.2,211.4 638.3,212.2 641.4,212.9 644.5,213.6 647.6,214.3 650.7,215.0 653.8,215.7 656.9,216.4 660.0,217.1" fill="none" stroke="#1d6b4c" stroke-width="1.6" stroke-dasharray="5 4" opacity=".75"/>
+  <text x="350" y="336" text-anchor="middle" font-size="12" fill="var(--muted)">부지 경계로부터의 거리 (km)</text>
+  <text x="12" y="40" font-size="12" fill="var(--muted)">기온 상승 (℃)</text>
+  <g font-size="12">
+    <rect x="430" y="60" width="220" height="66" rx="8" fill="var(--panel)" stroke="var(--line)"/>
+    <line x1="442" y1="76" x2="470" y2="76" stroke="#1d6b4c" stroke-width="2.5"/><text x="478" y="80" fill="var(--ink)">반감기 4.2km · β 0.258</text>
+    <line x1="442" y1="94" x2="470" y2="94" stroke="#1d6b4c" stroke-width="1.6" stroke-dasharray="5 4"/><text x="478" y="98" fill="var(--ink)">β 0.459 (상한)</text>
+    <line x1="442" y1="112" x2="470" y2="112" stroke="#bb5f2b" stroke-width="2.5"/><text x="478" y="116" fill="var(--ink)">반감기 3.0km (하한)</text>
+  </g>
+</svg>
+<p class="note">반감기를 4.2 → 3.0km로만 줄여도 추가 환자 추정이 <b>0.69배</b>, 2.0km면 <b>0.39배</b>가 된다.
+<b>모양이 진폭만큼 결과를 좌우한다.</b></p>
+</div>
+
+<h2><span class="n">4</span>우리가 우리 추정을 반증해 보았다</h2>
+<p class="lede">가동 시점이 뚜렷한 <b>네이버 각 세종</b>(2023-11)에 같은 구조를 적용했다. Landsat 6월 장면, 거리 링별.</p>
+<div class="card">
+<table style="max-width:620px">
+<thead><tr><th>거리 링</th><th class="num">예측(℃)</th><th class="num">실측(℃)</th><th>판정</th></tr></thead>
+<tbody><tr><td>0-0.5km</td><td class="num muted">+1.99</td><td class="num ok">-0.75</td><td class="ok"><b>예측 기각</b></td></tr><tr><td>0.5-1km</td><td class="num muted">+1.83</td><td class="num muted">&mdash;</td><td class="muted">표본 부족(n=2,1)</td></tr><tr><td>1-2km</td><td class="num muted">+1.62</td><td class="num ok">-0.43</td><td class="ok"><b>예측 기각</b></td></tr><tr><td>2-3km</td><td class="num muted">+1.37</td><td class="num ok">-0.03</td><td class="ok"><b>예측 기각</b></td></tr><tr><td>3-5km</td><td class="num muted">+1.07</td><td class="num ok">+0.14</td><td class="ok"><b>예측 기각</b></td></tr><tr><td>5-10km</td><td class="num muted">+0.60</td><td class="num na">+0.00</td><td class="na">구분 못함</td></tr></tbody></table>
+<p class="note"><b>검정 가능한 5개 링 중 4개에서 95% 신뢰구간이 예측값을 배제한다.</b> 0.5&ndash;1km는 구름에 가려 표본이 모자라 검정하지 못했다.
+실제로 관측된 변화는 0&ndash;0.5km 한 링에만(+1.78℃) 있고 그 밖에서는 끊긴다 &mdash;
+열의 확산이 아니라 <b>건물 발자국</b>의 서명이다.<br>
+⚠ 그렇다고 원 논문이 틀렸다는 뜻은 아니다. 1곳 vs 8,472곳이고, 가동률·촬영시각·냉각방식이 모두 미확인이다.</p>
+</div>
+
+<h2><span class="n">5</span>그래서 무엇이 필요한가</h2>
+<div class="split">
+<div class="card"><b style="color:var(--danger)">🔴 급한 것</b>
+<ul style="padding-left:18px;margin:8px 0 0;font-size:13.5px">
+<li><b>차량 실측</b> &mdash; 지표온도를 기온으로 옮기는 계수의 관측소가 <b>불투수면 위에 0개</b>다. 반나절이면 이 구멍을 직접 메운다</li>
+<li><b>야간 위성</b> &mdash; 폐열은 밤에 뚜렷한데 우리는 오전 11시만 봤다. MODIS 야간 산출물은 무료다</li>
+<li><b>발생지 단위 자료</b> &mdash; 지금은 시군구 단위라 "10km 안 전부가 같은 비율"로 놓았다. 읍면동 단위 재청구</li>
+</ul></div>
+<div class="card"><b style="color:var(--gold)">🟡 그다음</b>
+<ul style="padding-left:18px;margin:8px 0 0;font-size:13.5px">
+<li>2020년 이후 가동한 국내 데이터센터 2&ndash;3곳 추가 (각 춘천은 2013년이라 전후 비교 불가)</li>
+<li>산단 공정 폐열 방출량 &mdash; 가동 산단의 순변화를 재려면 필요</li>
+<li>플룸(바람 방향) 모형 &mdash; 꽂을 자리는 이미 만들어 두었다</li>
+<li>포항·여수 산단 실형상 &mdash; 지금 값은 하한이다</li>
+</ul></div>
+</div>
+
+<div class="foot">
+<b>자료</b> 질병관리청(정보공개청구) · 한국전력공사 · 기상청 ASOS/AWS · 통계청 집계구 · 산업입지정보시스템 · 환경부 토지피복 · USGS Landsat 8/9<br>
+<b>인용</b> Marinoni et al., <i>The Data Heat Island Effect</i> · Sailor et al., ASU 2025<br>
+<b>전체 코드·자료</b> <a href="https://github.com/doobMM/aidc_data_heat_island">github.com/doobMM/aidc_data_heat_island</a><br>
+<b>정보공개청구로 받은 원자료가 필요하시면</b> mjooya56@gmail.com &mdash; 드립니다. 청구 문안도 함께.
+</div>
+</div></body></html>
